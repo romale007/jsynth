@@ -1,39 +1,30 @@
 "use strict";
  
+let audioCtx;
 
-let AudioContext = window.AudioContext || window.webkitAudioContext; // обращаемся к глобальному аудио контексту
-let audioCtx = new AudioContext();
+let on = document.querySelector('#onBtn');
 
-class Sound {                                     // Создаём класс , который каждый раз будет обращаться к глобальному контексту    
-    
-    constructor(audioCtx) {
-        this.audioCtx = audioCtx;  
-     
-    }
-    init() {                                          // создаём фунцию, которая будет каждое нажатие создавать цепь осцилятор-усилитель-выход      
-        this.oscillator = audioCtx.createOscillator(); // создаём в контексте: узел осцилятора 
-        this.gainNode = audioCtx.createGain();         // создаём в контексте: узел усилителя
+on.onclick = function () {
+  oscillator.start(0);
+  on.setAttribute('disabled', 'disabled');
+}  
 
-        this.oscillator.connect(this.gainNode);          // втыкаем осцилятор в усилитель
-        this.gainNode.connect(this.audioCtx.destination); // втыкаем усилитель в устройство вывода
+AudioContext = window.AudioContext || window.webkitAudioContext; // обращаемся к глобальному аудио контексту
 
-        this.oscillator.type = 'sine';                   // задаём форму осцилятора (синус самый мягкий по звучанию)
-        this.gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime); // задаём уровень громкости (50%) и время запуска (сразу)
-    }
-    play(freq) {                                        //создаём функцию, которая будет запускать осцилятор, два параметра - частота и время запуска
-        this.init();                                    // создаёт цепь  "осцилятор-усилитель-выход" и форму осцилятора 
-        this.oscillator.frequency.value = freq;           // присваивает свойству oscillator.frequency.freq значение переменной freq  
-        this.oscillator.start();                          // запускаем
-    }
-    stop() {                                            // останавливаем 
-        
-        this.oscillator.stop ();
-         
-    }
+audioCtx = new AudioContext();
 
-}
+const oscillator = audioCtx.createOscillator(); // создаём в контексте: узел осцилятора 
+const gainNode = audioCtx.createGain();         // создаём в контексте: узел усилителя
 
-// создаём класс Нота, свойство - частота (Гц)
+oscillator.connect(gainNode);          // втыкаем осцилятор в усилитель
+gainNode.connect(audioCtx.destination); // втыкаем усилитель в устройство вывода
+
+oscillator.type = 'sine';                   // задаём форму осцилятора (синус самый мягкий по звучанию)
+oscillator.frequency.value = 0;           // присваивает свойству oscillator.frequency.freq значение переменной freq  
+//oscillator.start(0);                          // запускаем
+
+gainNode.gain.value = 0.1; // задаём уровень громкости (10%)  
+
 
 class Note {
     constructor(freq, name) {
@@ -74,84 +65,105 @@ let blackNotesNames = [Db4.name, Eb4.name, 0, Gb4.name, Ab4.name, Bb4.name];
 
 //рисуем клавиши c помощью цикла
 
-function draw() {                    
-    let html = "";
-    let box = document.querySelector('#box');
+function draw() {
+    
+  let html = "";
+  let box = document.querySelector('#box');
+
     for (let i = 0; i < whiteNotesFrequencies.length; i++) {
         
-        let flag = true;
-        let note = whiteNotesFrequencies[i];
+      let flag = true;
+      let note = whiteNotesFrequencies[i];
 
         if (note == 329.63 || note == 493.88) 
         flag = false;
         // через dataset назначаем клавишам-нотам их частоты из массивов     
-        html +=`<div  class = "whitenotes" data-note='${whiteNotesFrequencies[i]}'>`;                
+          html +=`<div  class = "whitenotes" data-note='${whiteNotesFrequencies[i]}'>`;                
         
         if (flag) {
-        html +=`<div  class = "blacknotes" data-note='${blackNotesFrequencies[i]}'></div>`;
-    }
+          html +=`<div  class = "blacknotes" data-note='${blackNotesFrequencies[i]}'></div>`;
+      }
 
         html +='</div>';
     }
     
     box.innerHTML = html;
 
- 
+
+    document.querySelectorAll('.whitenotes').forEach(function(element) {  
+        element.onmouseup = function () {
+            if(audioCtx.state ==='running') {
+                  audioCtx.suspend().then(function(){
+                  console.log("suspend") ; 
+                });
+          };
+      }       
+        element.onmousedown = function(){
+                
+            if (audioCtx.state ==='suspended') {
+                  audioCtx.resume();
+                  oscillator.frequency.value = this.dataset.note;
+                  event.stopPropagation(); 
+        }
+      }   
+      element.onmouseleave = function () {
+        if(audioCtx.state ==='running') {
+              audioCtx.suspend().then(function(){
+              console.log("suspend") ; 
+            });
+      };
+  }            
+  });
+
+       document.querySelectorAll('.blacknotes').forEach(function(element) {
+        element.onmouseup = function () {
+            if(audioCtx.state ==='running') {
+                  audioCtx.suspend().then(function(){
+                  console.log("suspend") ; 
+                });
+        };
+    }       
+        element.onmousedown = function(){
+            if (audioCtx.state ==='suspended') {
+                 audioCtx.resume();
+                 oscillator.frequency.value = this.dataset.note;
+                 event.stopPropagation(); 
+        }
+    }   
+        element.onmouseleave = function () {
+            if(audioCtx.state ==='running') {
+                audioCtx.suspend().then(function(){
+                console.log("suspend") ; 
+              });
+      };
+  }        
+  });
+}   
 
 
 
-document.querySelectorAll('.whitenotes').forEach(function(element) {
-    element.onmousedown = playNow;
-    element.onmouseup = stopNow;
-    element.onmouseleave = stopNow; 
-     
-    });
-
-      document.querySelectorAll('.blacknotes').forEach(function(element) {
-        element.onmousedown = playNow;
-        element.onmouseup = stopNow;
-        element.onmouseleave = stopNow; 
-         
-    }); 
-    
-}     
- 
-
-  let Play = new Sound(audioCtx); // создаём объект
+draw();
 
 
-function playNow(){
-    
-    Play.play(this.dataset.note);   // берет частоту из dataset элемента
-    event.stopPropagation();        
-    //localStorage.setItem(`currentFreq`, `${this.dataset.note}`);
+
+
+
+btn.onmousedown = function () {  //
+    oscillator.frequency.value = 440;
+    audioCtx.resume();
 }
 
-function stopNow(){
-    Play.stop();
-    
-
+btn.onmouseup = function () {
+    if(audioCtx.state ==='running') {
+        audioCtx.suspend();
+    } 
 }
 
-
-    //тест - кнопка
-    btn.onmousedown = function () {  //
-    Play.play(Gb4.freq);
-    }
-    btn.onmouseup = function () {
-    Play.stop();
-    }
-
-
-    
-function playDo() {
-    
-    let x = this.dataset.note;
-    
-    console.log(x);
+stopBtn.onclick = function () {
+    audioCtx.close().then(function (){
+        stopBtn.setAttribute('disabled', 'disabled')
+    })
 }
-
-draw(); 
 
 
 //function noteDown(elem){
