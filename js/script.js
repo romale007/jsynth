@@ -33,22 +33,29 @@ class Note {
         this.name = name;
         this.keyCode = keyCode;
     }
-}
+
+        // пока не знаю зачем добавил функцию в класс
+        play() {
+          audioCtx.resume();
+          oscillator.frequency.value = this.freq;
+        }
+    }
+
 // создаём объекты - Ноты
 
 
-const C4 = new Note(261.63, "C4", "KeyQ");
-const Db4 = new Note(277.18, "C#4", "Digit2");
-const D4 = new Note(293.66, "D4", "KeyW");
-const Eb4 = new Note(311.13, "D#4", "Digit3");
-const E4 = new Note(329.63, "E4", "KeyE");
-const F4 = new Note(349.23, "F4", "KeyR");
-const Gb4 = new Note(369.99, "F#4", "Digit5");
-const G4 = new Note(392.00, "G4", "KeyT");
-const Ab4 = new Note(415.30, "G#4", "Digit6");
-const A4 = new Note(440.00, "A4", "KeyY");
-const Bb4 = new Note(466.16, "A#4", "Digit7");
-const B4 = new Note(493.88, "B4", "KeyU");
+const C4 = new Note(261.63, "Q", "KeyQ");
+const Db4 = new Note(277.18, "2", "Digit2");
+const D4 = new Note(293.66, "W", "KeyW");
+const Eb4 = new Note(311.13, "3", "Digit3");
+const E4 = new Note(329.63, "E", "KeyE");
+const F4 = new Note(349.23, "R", "KeyR");
+const Gb4 = new Note(369.99, "5", "Digit5");
+const G4 = new Note(392.00, "T", "KeyT");
+const Ab4 = new Note(415.30, "6", "Digit6");
+const A4 = new Note(440.00, "Y", "KeyY");
+const Bb4 = new Note(466.16, "7", "Digit7");
+const B4 = new Note(493.88, "U", "KeyU");
 
 
 
@@ -63,6 +70,11 @@ let blackNotesFrequencies = [Db4.freq, Eb4.freq, 0, Gb4.freq, Ab4.freq, Bb4.freq
 let whiteNotesNames = [C4.name, D4.name, E4.name, F4.name, G4.name, A4.name, B4.name];
 
 let blackNotesNames = [Db4.name, Eb4.name, 0, Gb4.name, Ab4.name, Bb4.name];
+
+let whiteNotesKeys = [C4.keyCode, D4.keyCode, E4.keyCode, F4.keyCode, G4.keyCode, A4.keyCode, B4.keyCode];
+
+let blackNotesKeys = [Db4.keyCode, Eb4.keyCode, 0, Gb4.keyCode, Ab4.keyCode, Bb4.keyCode];
+
 
 
 
@@ -80,64 +92,31 @@ function draw() {
 
         if (note == 329.63 || note == 493.88) 
         flag = false;
-        // через dataset назначаем клавишам-нотам их частоты из массивов     
-          html +=`<div  class = "whitenotes" data-note='${whiteNotesFrequencies[i]}'>`;                
+        // через dataset назначаем клавишам-нотам их частоты и keyCode из массивов     
+          html +=`<div  class = "whitenotes" data-freq='${whiteNotesFrequencies[i]}' data-key='${whiteNotesKeys[i]}'>`;                
         
         if (flag) {
-          html +=`<div  class = "blacknotes" data-note='${blackNotesFrequencies[i]}'></div>`;
+          html +=`<div  class = "blacknotes" data-freq='${blackNotesFrequencies[i]}' data-key='${blackNotesKeys[i]}'></div>`;
       }
 
         html +='</div>';
     }
     
     box.innerHTML = html;
-
+    // связываем элементы с событиями
     document.querySelectorAll('.whitenotes, .blacknotes').forEach(function(element) {  
-      let mouseBtnPressed;
-      /*function startPlay () {
-        if (audioCtx.state ==='suspended') {
-          audioCtx.resume();
-          oscillator.frequency.value = this.dataset.note;
-          //event.stopPropagation(); 
-        }
-      }*/
-      
-      /*
-      function stopPlay () {
-        if(audioCtx.state ==='running') {
-            audioCtx.suspend().then(function(){
-            console.log("suspend") ; 
-          });
-        }
-      }
-      */
-        element.ontouch = function () {
-          //event.stopPropagation(); 
-          if (audioCtx.state ==='suspended') {
-            audioCtx.resume();
-            oscillator.frequency.value = this.dataset.note;
-          }  
-        };
         
-        element.ontouchend = function () {
-          mouseBtnPressed = true;
-          if(audioCtx.state ==='running') {
-            audioCtx.suspend().then(function(){
-            console.log("suspend") ; 
-           });
-          } 
-        };
+        let btnPressed;  // позже задействую
+
 
         element.onmousedown = function () {
-          mouseBtnPressed = true;
-          event.stopPropagation(); 
-          if (audioCtx.state ==='suspended') {
+          btnPressed = true;
+          event.stopPropagation();
             audioCtx.resume();
-            oscillator.frequency.value = this.dataset.note;
-          }  
+            oscillator.frequency.value = this.dataset.freq; 
         };
         element.onmouseup = function () {
-          mouseBtnPressed = false;
+          btnPressed = false;
           if(audioCtx.state ==='running') {
             audioCtx.suspend().then(function(){
             console.log("suspend") ; 
@@ -153,90 +132,105 @@ function draw() {
           }
         };
 
-
-
-      /*  element.onmouseover = function () {
-          if (mouseBtnPressed == true) {
+       /* element.ontouch = function () {
+          //event.stopPropagation(); 
+          if (audioCtx.state ==='suspended') {
             audioCtx.resume();
-            oscillator.frequency.value = this.dataset.note;
+            oscillator.frequency.value = this.dataset.freq;
+          }  
+        };
+        
+        element.ontouchend = function () {
+          btnPressed = true;
+          if(audioCtx.state ==='running') {
+            audioCtx.suspend().then(function(){
+            console.log("suspend") ; 
+           });
           } 
         };*/
-        
-          
+     
   });
+  
+        // ВЫДЕЛЕНИЕ ПРИ НАЖАТИИ КЛАВИШ qwerty
+        function activePress () {
+        document.querySelector('#box .whitenotes[data-key ="'+event.code+'"], .blacknotes[data-key ="'+event.code+'"]').classList.add('active');
+      }
 
-    
-   // let doNota = document.querySelector(`.whitenotes[data="${D4.freq}"]`);
+      function removeActivePress () {
+        document.querySelector('#box .whitenotes[data-key ="'+event.code+'"], .blacknotes[data-key ="'+event.code+'"]').classList.remove('active');
+      }
+
 
       document.addEventListener('keydown', function(event){
         switch (event.code) {
           case C4.keyCode : audioCtx.resume(); oscillator.frequency.value = C4.freq;
+          activePress();
             break;
           case Db4.keyCode : audioCtx.resume(); oscillator.frequency.value = Db4.freq;
+          activePress();
             break;
           case D4.keyCode : audioCtx.resume(); oscillator.frequency.value = D4.freq;
+          activePress();
             break;
           case Eb4.keyCode : audioCtx.resume(); oscillator.frequency.value = Eb4.freq;
+          activePress();
             break;
           case E4.keyCode : audioCtx.resume(); oscillator.frequency.value = E4.freq;
+          activePress();
             break;
           case F4.keyCode : audioCtx.resume(); oscillator.frequency.value = F4.freq;
+          activePress();
             break;
           case Gb4.keyCode : audioCtx.resume(); oscillator.frequency.value = Gb4.freq;
+          activePress();
             break;
           case G4.keyCode : audioCtx.resume(); oscillator.frequency.value = G4.freq;
+          activePress();
             break;
           case Ab4.keyCode : audioCtx.resume(); oscillator.frequency.value = Ab4.freq;
+          activePress();
             break;
           case A4.keyCode : audioCtx.resume(); oscillator.frequency.value = A4.freq;
+          activePress();
             break; 
           case B4.keyCode : audioCtx.resume(); oscillator.frequency.value = B4.freq;
+          activePress();
             break;
           default : audioCtx.suspend();
         }
   });
       document.addEventListener('keyup', function(event){
+        removeActivePress();
+        
+        if(audioCtx.state ==='running'){
         audioCtx.suspend();
+      }
   });
-        //console.log(1);
-       // audioCtx.resume();
-        //oscillator.frequency.value = C4.freq;
-    
-      //document.addEventListener('keyup', function(event){
-      //  audioCtx.suspend();
-     // });
 
 
-}   
+} 
 
 draw();
 
-
+// тест кнопка
 btn.onmousedown = function () {  //
-    oscillator.frequency.value = 440;
-    audioCtx.resume();
-}
+    D4.play();
+};
 
 btn.onmouseup = function () {
     if(audioCtx.state ==='running') {
         audioCtx.suspend();
     } 
-}
+};
 
 stopBtn.onclick = function () {
     audioCtx.close().then(function (){
         stopBtn.setAttribute('disabled', 'disabled')
     })
-}
+};
 
 
-//function noteDown(elem){
- //   let currentNote = elem.dataset.note;
- //   alert(currentNote);
-//}
 
-
-//здесь пока всё играет
 
 
 
