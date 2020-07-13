@@ -1,7 +1,8 @@
 "use strict";
  
+// ОБРАЩАЕМСЯ К ГЛОБАЛЬНОМУ АУДИО-КОНТЕКСТУ
 
-var AudioContext = window.AudioContext || window.webkitAudioContext; // обращаемся к глобальному аудио контексту
+var AudioContext = window.AudioContext || window.webkitAudioContext; 
 let audioCtx = new AudioContext();   
 
 //  МАССИВ В КОТОРЫЙ БУДЕТ ПОМЕЩАТЬСЯ ЧАСТОТА ИЗ dataset АКТИВНОГО ЭЛЕМЕНТА
@@ -111,16 +112,13 @@ draw();
 
   document.querySelectorAll('.whitenotes, .blacknotes').forEach(function(element) {
         
-    element.addEventListener('mousedown', notePressed, false);                           // повторить про false
+    element.addEventListener('mousedown', notePressed, false);                           
     element.addEventListener('mouseup', noteReleased, false);
     element.addEventListener('mouseover', notePressed, false);
     element.addEventListener('mouseout', noteReleased, false);
     element.addEventListener('touchstart', notePressedByTouch, false);
     element.addEventListener('touchend', noteReleased, false);
     element.addEventListener('touchmove', notePressedByTouch, false);
-
-  //return element;   // ???
-
   }); 
 
 
@@ -136,7 +134,7 @@ function play(freq) {
   osc.type = 'sine';
   gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
   osc.start();
-  return osc;                                                   // посмотреть
+  return osc;                                                   
 
 }
  
@@ -145,7 +143,7 @@ function play(freq) {
 function notePressed (event) { 
   //ФУНКЦИЯ ЗАПУСКАЕТСЯ ТОЛЬКО ПРИ НАЖАТИИ ПКМ   
 
-  if (event.buttons & 1) {                                       //  посмотреть
+  if (event.buttons & 1) {                                       
     //БЕРЕМ dataset АКТИВНОГО ЭЛЕМЕНТА                                 
     let dataset = event.target.dataset;
   
@@ -154,7 +152,7 @@ function notePressed (event) {
       if (!dataset["pressed"]) {
 
         event.target.classList.add('active');
-        oscList[dataset["freq"]] = play(dataset["freq"]);           //  посмотреть
+        oscList[dataset["freq"]] = play(dataset["freq"]);          
         dataset["pressed"] = "yes";
       } 
   } 
@@ -216,6 +214,3 @@ function removeActivePress () {
       }
   }
 }
-
-
-    
